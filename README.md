@@ -2,7 +2,7 @@
 Script to install containerized haproxy with letsencrypt cert
 
 ## Prerequisites
-- Debian 11 server
+- Debian 11 server with sudo and git
 - A domain name configured with dns record type A to your WAN IP. For example:
   - [empty]  ->  WAN IP
   - www      ->  WAN IP

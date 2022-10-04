@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 
-from distutils.command.build import build
 import os
-import shutil
-
-print("haproxy-script")
-
 
 # Change these values:
 ###################################################################
@@ -15,27 +10,28 @@ domainsAndProxyPass=[
     {
         "domain": "yourdomain.xyz",
         "proxy_passes": [
-            "localhost:3000",
+            "0.0.0.0:3000",
             "192.168.1.100:3001"
         ]
     },
     {
         "domain": "sub1.yourdomain.xyz",
         "proxy_passes": [
-            "localhost:4000",
+            "0.0.0.0:4000",
             "192.168.1.101:4001"
         ]
     },
     {
         "domain": "sub2.yourdomain.xyz",
         "proxy_passes": [
-            "localhost:5000",
+            "0.0.0.0:5000",
             "192.168.1.102:5001"
         ]
     }
 ]
 ###################################################################
 
+print("haproxy-script")
 
 #make it a comma separated string
 domainsComma = ""

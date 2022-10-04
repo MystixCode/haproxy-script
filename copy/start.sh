@@ -6,7 +6,6 @@ domain=<replace>
 email=<replace>
 domain_underline=<replace>
 
-
 # start haproxy with http conf
 haproxy -f /usr/local/etc/haproxy/haproxy_http.cfg \
            -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
@@ -22,7 +21,7 @@ certbot certonly --standalone \
 -n \
 --preferred-challenges http \
 --http-01-port 8443 \
---server https://acme-staging-v02.api.letsencrypt.org/directory \
+--server https://acme-v02.api.letsencrypt.org/directory \
 --email $email \
 --agree-tos \
 --redirect \
