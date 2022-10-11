@@ -2,14 +2,14 @@
 Script to install containerized haproxy with letsencrypt cert
 
 ## Prerequisites
-- Debian 11 server with sudo and git
+- Debian 11 server with sudo, git, docker (https://github.com/MystixCode/server-script)
 - A domain name configured with dns record type A to your WAN IP. For example:
-  - [empty]  ->  WAN IP
-  - www      ->  WAN IP
-  - api      ->  WAN IP
- - (optional) CAA dns record yourdomain.xyz->letsencrypt.org
+  - example.xyz&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->  WAN IP
+  - sub1.example.xyz&nbsp;&nbsp;&nbsp;&nbsp;->  WAN IP
+  - sub2.example.xyz&nbsp;&nbsp;&nbsp;&nbsp;->  WAN IP
+ - (optional) CAA dns record example.xyz -> letsencrypt.org
   
-- On your router: port forwarding for http port 80 and https port 443 to your debian server.
+- On your router: port forwarding for http port 80 and https port 443 and letsencrypt port 8899 to your debian server.
 
 ## Installation
 
