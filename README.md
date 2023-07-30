@@ -76,6 +76,11 @@ Copy the dh-key to local:
 docker cp haproxy:/usr/local/etc/haproxy/dhparams.pem /home/$USER/git/haproxy-script/conf/
 ```
 
+Copy the certs to local:
+```bash
+docker cp haproxy:/etc/ssl/private/. /home/$USER/git/haproxy-script/tls
+```
+
 Access the volumes on the server like this:
 ```bash
 sudo ls -l /var/lib/docker/volumes/copy/_data
@@ -89,7 +94,7 @@ docker exec -it haproxy /bin/bash
 
 Run a command in the container like this:
 ```bash
-docker exec -it haproxy ls -l
+docker exec -it haproxy cat /usr/local/etc/haproxy/haproxy.cfg
 ```
 
 Check the ocsp response like this:
