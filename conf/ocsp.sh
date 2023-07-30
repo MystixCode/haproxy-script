@@ -1,50 +1,53 @@
 #!/bin/bash
 
-shopt -u nullglob
+shopt -s nullglob  # Enable nullglob to prevent executing the loop if no files are found
 
 # Certificates path and names
-SSL_DIR="/etc/ssl/private"
-DIR="/usr/local/etc/haproxy/ocsp"
-CERTS="${SSL_DIR}/*.crt"
+ssl_dir="/etc/ssl/private"
+dir="/usr/local/etc/haproxy/ocsp"
+certs="${ssl_dir}/*.crt"
 
-for CERT in $CERTS; do
-    # Get the issuer URI, download it's certificate and convert into PEM format
-    ISSUER_URI=$(openssl x509 -in $CERT -text -noout | grep 'CA Issuers' | cut -d: -f2,3)
-    ISSUER_NAME=$(echo ${ISSUER_URI#*//} | while read -r fname; do echo ${fname%.*}; done)
-    mkdir -p $DIR
-    ISSUER_PEM="${DIR}/${ISSUER_NAME}.pem"
-    wget -q -O- $ISSUER_URI | openssl x509 -inform DER -outform PEM -out $ISSUER_PEM
+# Check if any certificate files are found before proceeding with the loop
+if [[ -n $certs ]]; then
+    for cert in $certs; do
+        # Get the issuer URI, download its certificate and convert into PEM format
+        issuer_uri=$(openssl x509 -in $cert -text -noout | grep 'CA Issuers' | cut -d: -f2,3)
+        issuer_name=$(echo ${issuer_uri#*//} | while read -r fname; do echo ${fname%.*}; done)
+        mkdir -p $dir
+        issuer_pem="${dir}/${issuer_name}.pem"
+        wget -q -O- $issuer_uri | openssl x509 -inform DER -outform PEM -out $issuer_pem
 
-    # Get the OCSP URL from the certificate
-    ocsp_url=$(openssl x509 -noout -ocsp_uri -in $CERT)
+        # Get the OCSP URL from the certificate
+        ocsp_url=$(openssl x509 -noout -ocsp_uri -in $cert)
 
-    # Extract the hostname from the OCSP URL
-    ocsp_host=$(echo $ocsp_url | cut -d/ -f3)
+        # Extract the hostname from the OCSP URL
+        ocsp_host=$(echo $ocsp_url | cut -d/ -f3)
 
-    # Create/update the ocsp response file and update HAProxy
-    OCSP_FILE="${SSL_DIR}/${CERT##*/}.ocsp"
-    echo "** DEBUG **********************************************"
-    echo "CERT: ${CERT}"
-    echo "ISSUER_URI: ${ISSUER_URI}"
-    echo "ISSUER_NAME: ${ISSUER_NAME}"
-    echo "ISSUER_PEM: ${ISSUER_PEM}"
-    echo "ocsp_url: ${ocsp_url}"
-    echo "ocsp_host: ${ocsp_host}"
-    echo "OCSP_FILE: ${OCSP_FILE}"
-    echo "******************************************************"
-    openssl ocsp -noverify -no_nonce -issuer $ISSUER_PEM -cert $CERT -url $ocsp_url -header Host=$ocsp_host -respout $OCSP_FILE
+        # Create/update the ocsp response file and update HAProxy
+        ocsp_file="${ssl_dir}/${cert##*/}.ocsp"
+        echo "** ocsp *****************************"
+        # echo "cert: ${cert}"
+        # echo "issuer_uri: ${issuer_uri}"
+        # echo "issuer_name: ${issuer_name}"
+        # echo "issuer_pem: ${issuer_pem}"
+        # echo "ocsp_url: ${ocsp_url}"
+        # echo "ocsp_host: ${ocsp_host}"
+        # echo "ocsp_file: ${ocsp_file}"
+        openssl ocsp -noverify -no_nonce -issuer $issuer_pem -cert $cert -url $ocsp_url -header Host=$ocsp_host -respout $ocsp_file
+        
+        # Reload haproxy
+        haproxy -f /usr/local/etc/haproxy/haproxy.cfg \
+                -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
-    #Reload haproxy
-    haproxy -f /usr/local/etc/haproxy/haproxy.cfg \
-            -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
+        # Update the OCSP response for HAProxy
+        echo -e "set ssl ocsp-response <<\n$(base64 $ocsp_file)\n" | socat stdio /run/haproxy/admin.sock
 
-    #[[ $? -eq 0 ]] && [[ $(pidof haproxy) ]] && [[ -s $OCSP_FILE ]] && echo -e "set ssl ocsp-response <<\n$(base64 $OCSP_FILE)\n" | socat stdio unix-connect:/run/haproxy/admin.sock
-    echo -e "set ssl ocsp-response <<\n$(base64 $OCSP_FILE)\n" | socat stdio /run/haproxy/admin.sock
+        # Reload haproxy again
+        haproxy -f /usr/local/etc/haproxy/haproxy.cfg -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
-    #Reload haproxy
-    haproxy -f /usr/local/etc/haproxy/haproxy.cfg \
-            -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
-
-done
+    done
+else
+    echo "No certificate files found in the specified directory."
+fi
 
 exit 0
