@@ -33,7 +33,7 @@ if [ -n "$(docker ps -a -q -f name=haproxy)" ]; then docker rm haproxy; fi && \
 if [ -n "$(docker images -q haproxy-img)" ]; then docker rmi haproxy-img; fi && \
 docker volume rm conf -f && \
 docker volume rm tls -f && \
-docker build --progress=plain --no-cache -t haproxy-img -f Dockerfile . && \
+docker build -t haproxy-img -f Dockerfile . && \
 docker run --rm --name haproxy \
 -v conf:/usr/local/etc/haproxy \
 -v tls:/etc/ssl/private \
@@ -55,7 +55,7 @@ if [ -n "$(docker ps -a -q -f name=haproxy)" ]; then docker rm haproxy; fi && \
 if [ -n "$(docker images -q haproxy-img)" ]; then docker rmi haproxy-img; fi && \
 docker volume rm conf -f && \
 docker volume rm tls -f && \
-docker build --progress=plain --no-cache -t haproxy-img -f Dockerfile . && \
+docker build -t haproxy-img -f Dockerfile . && \
 docker run --rm --name haproxy \
 -v conf:/usr/local/etc/haproxy \
 -v tls:/etc/ssl/private \
