@@ -24,7 +24,8 @@ get_certificate() {
         --redirect \
         --uir \
         --hsts \
-        --rsa-key-size 4096 \
+        --key-type ecdsa \
+        --elliptic-curve secp384r1 \
         --staple-ocsp \
         --must-staple \
         -vv 2>&1); then
@@ -40,15 +41,22 @@ get_certificate() {
 # Function to add lines to haproxy.cfg
 add_haproxy_config() {
     echo "- - Add lines to haproxy.cfg  - - - - - - - - - - - - - - - - - - - - - - -"
+
     local domain="$1"
     shift
     local ip_port_pairs=("$@")
 
-    # Add frontend configuration before the #automated-frontend-tag
-    sed -i "/#automated-frontend-tag/i \\
+    # Temporary file to store the frontend configuration
+    tmp_frontend=$(mktemp)
+
+    # Add frontend configuration to the temporary file before the #automated-frontend-tag
+    sed "/#automated-frontend-tag/i \\
     acl ACL_$domain hdr(host) -i $domain www.$domain \\
     use_backend $domain if ACL_$domain \\
-" /usr/local/etc/haproxy/haproxy.cfg
+" /usr/local/etc/haproxy/haproxy.cfg > "$tmp_frontend"
+
+    # Temporary file to store the updated backend configuration
+    tmp_backend=$(mktemp)
 
     # Build backend configuration for all IP:Port pairs
     backend_config="backend $domain \\
@@ -63,13 +71,16 @@ add_haproxy_config() {
     server $ip_port $ip_port check maxconn 200"
     done
 
-    # Remove all existing backend configurations for the domain
-    sed -i "/backend $domain/,/backend /d" /usr/local/etc/haproxy/haproxy.cfg
-
-    # Add the new backend configuration
-    sed -i "/#automated-backend-tag/i \\
+    # Add the new backend configuration to the temporary file
+    sed "/#automated-backend-tag/i \\
 $backend_config \\
-" /usr/local/etc/haproxy/haproxy.cfg
+" "$tmp_frontend" > "$tmp_backend"
+
+    # Replace the original haproxy.cfg file with the updated configuration
+    cat "$tmp_backend" > /usr/local/etc/haproxy/haproxy.cfg
+
+    # Clean up the temporary files
+    rm "$tmp_frontend" "$tmp_backend"
 }
 
 # Start haproxy with http conf
@@ -90,11 +101,16 @@ while [[ $# -gt 0 ]]; do
             email="${domain_info[1]}"
             ip_port_pairs=("${domain_info[@]:2}")
 
-            if [[ -f "/etc/ssl/private/${domain//./_}.crt" && -f "/etc/ssl/private/${domain//./_}.crt.key" ]]; then
-                echo "Certificate files for $domain already exist. Skipping certificate generation."
-            else
-                get_certificate "$domain" "$email"
+            # Check if domains are provided before proceeding with certificate and HAProxy configuration
+            if [[ -n $domain && -n $email && ${#ip_port_pairs[@]} -gt 0 ]]; then
+                if [[ -f "/etc/ssl/private/${domain//./_}.crt" && -f "/etc/ssl/private/${domain//./_}.crt.key" ]]; then
+                    echo "Certificate files for $domain already exist. Skipping certificate generation."
+                else
+                    get_certificate "$domain" "$email"
+                fi
                 add_haproxy_config "$domain" "${ip_port_pairs[@]}"
+            else
+                echo "Invalid or missing input for domain, email, or IP:Port pairs. Skipping certificate generation and HAProxy configuration."
             fi
 
             shift

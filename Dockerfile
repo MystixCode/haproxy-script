@@ -10,6 +10,7 @@ echo deb "[signed-by=/usr/share/keyrings/haproxy.debian.net.gpg]" http://haproxy
 apt-get -qq update && apt-get -yqq dist-upgrade && apt-get -yqq install haproxy=2.8.\*
 
 COPY ./conf/* /usr/local/etc/haproxy/
+COPY ./tls/* /etc/ssl/private/
 
 SHELL ["/bin/bash", "-c"]
 
