@@ -2,30 +2,78 @@
 Script to install containerized haproxy with letsencrypt cert
 
 ## Prerequisites
-- Debian 11 server with sudo, git, docker (https://github.com/MystixCode/server-script)
-- A domain name configured with dns record type A to your WAN IP. For example:
-  - example.xyz&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->  WAN IP
-  - sub1.example.xyz&nbsp;&nbsp;&nbsp;&nbsp;->  WAN IP
-  - sub2.example.xyz&nbsp;&nbsp;&nbsp;&nbsp;->  WAN IP
- - (optional) CAA dns record example.xyz -> letsencrypt.org
+- Debian 12 server with sudo, git, docker (https://github.com/MystixCode/server-script)
+- A domain name configured with dns record type A pointing to your WAN IP. For example:
+
+  | Domain  | WAN IP |
+  | ------------- | ------------- |
+  | example.dev  | 142.250.203.110  |
+  | sub1.example.dev  | 142.250.203.110  |
+  | sub2.example.dev  | 142.250.203.110  |
+
+ - (optional) CAA dns record pointing to letsencrypt.org. For example:
+
+    | Domain  | letsencrypt domain |
+    | ------------- | ------------- |
+    | example.dev  | letsencrypt.org  |
+    | sub1.example.dev  | letsencrypt.org  |
+    | sub2.example.dev  | letsencrypt.org  |
   
-- On your router: port forwarding for http port 80 and https port 443 and letsencrypt port 8899 to your debian server.
+- On your router: port forwarding for http port 80 and https port 443 and letsencrypt port 8443 to your debian server.
 
-## Installation
 
-First change the variable values in haproxy-script.py \
-Then run it:
+
+## Build and run
+
+### Staging
 
 ```bash
-cd haproxy-script
-chmod u+x haproxy-script.py
-./haproxy-script.py
+if [ -n "$(docker ps -q -f name=haproxy)" ]; then docker kill haproxy; fi && \
+if [ -n "$(docker ps -a -q -f name=haproxy)" ]; then docker rm haproxy; fi && \
+if [ -n "$(docker images -q haproxy-img)" ]; then docker rmi haproxy-img; fi && \
+docker volume rm conf -f && \
+docker volume rm tls -f && \
+docker build --progress=plain --no-cache -t haproxy-img -f Dockerfile . && \
+docker run --rm --name haproxy \
+-v conf:/usr/local/etc/haproxy \
+-v tls:/etc/ssl/private \
+-it \
+-p 7777:7777 \
+-p 80:80 \
+-p 443:443 \
+-p 8443:8443 \
+haproxy-img \
+"example.dev,info@example.dev,192.168.1.100:3000,192.168.1.101:3000" \
+"sub1.example.dev,sub1@example.dev,192.168.1.100:4000,192.168.1.101:4000"
+```
+
+### Prod
+
+```bash
+if [ -n "$(docker ps -q -f name=haproxy)" ]; then docker kill haproxy; fi && \
+if [ -n "$(docker ps -a -q -f name=haproxy)" ]; then docker rm haproxy; fi && \
+if [ -n "$(docker images -q haproxy-img)" ]; then docker rmi haproxy-img; fi && \
+docker volume rm conf -f && \
+docker volume rm tls -f && \
+docker build --progress=plain --no-cache -t haproxy-img -f Dockerfile . && \
+docker run --rm --name haproxy \
+-v conf:/usr/local/etc/haproxy \
+-v tls:/etc/ssl/private \
+-it \
+-p 7777:7777 \
+-p 80:80 \
+-p 443:443 \
+-p 8443:8443 \
+haproxy-img \
+--prod "example.dev,info@example.dev,192.168.1.100:3000,192.168.1.101:3000" \
+"sub1.example.dev,sub1@example.dev,192.168.1.100:4000,192.168.1.101:4000"
 ```
 
 ## Additional info:
-The haproxy container creates 2 volumes and copies configuration there. you can cleanup your complete docker env with:
+
+Copy the dh-key to local:
 ```bash
-if [ "$(docker ps -a -q)" = "" ]; then echo "no containers running"; else docker kill $(docker ps -a -q); fi && docker system prune --volumes -af
+docker cp haproxy:/usr/local/etc/haproxy/dhparams.pem /home/$USER/git/haproxy-script/conf/
 ```
 
 Access the volumes on the server like this:

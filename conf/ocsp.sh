@@ -35,14 +35,14 @@ for CERT in $CERTS; do
     openssl ocsp -noverify -no_nonce -issuer $ISSUER_PEM -cert $CERT -url $ocsp_url -header Host=$ocsp_host -respout $OCSP_FILE
 
     #Reload haproxy
-    haproxy -f /usr/local/etc/haproxy/haproxy_https.cfg \
+    haproxy -f /usr/local/etc/haproxy/haproxy.cfg \
             -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
     #[[ $? -eq 0 ]] && [[ $(pidof haproxy) ]] && [[ -s $OCSP_FILE ]] && echo -e "set ssl ocsp-response <<\n$(base64 $OCSP_FILE)\n" | socat stdio unix-connect:/run/haproxy/admin.sock
     echo -e "set ssl ocsp-response <<\n$(base64 $OCSP_FILE)\n" | socat stdio /run/haproxy/admin.sock
 
     #Reload haproxy
-    haproxy -f /usr/local/etc/haproxy/haproxy_https.cfg \
+    haproxy -f /usr/local/etc/haproxy/haproxy.cfg \
             -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
 done
