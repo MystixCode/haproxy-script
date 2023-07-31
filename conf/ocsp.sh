@@ -36,8 +36,7 @@ if [[ -n $certs ]]; then
         openssl ocsp -noverify -no_nonce -issuer $issuer_pem -cert $cert -url $ocsp_url -header Host=$ocsp_host -respout $ocsp_file
         
         # Reload haproxy
-        haproxy -f /usr/local/etc/haproxy/haproxy.cfg \
-                -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
+        haproxy -f /usr/local/etc/haproxy/haproxy.cfg -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
         # Update the OCSP response for HAProxy
         echo -e "set ssl ocsp-response <<\n$(base64 $ocsp_file)\n" | socat stdio /run/haproxy/admin.sock

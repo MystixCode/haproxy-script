@@ -11,8 +11,6 @@ get_certificate() {
         acme_url="https://acme-v02.api.letsencrypt.org/directory"
     fi
 
-    #echo "acme_url: $acme_url"
-
     if ! certbot_output=$(certbot certonly --standalone \
         -d "$domain" \
         -n \
@@ -64,7 +62,14 @@ add_haproxy_config() {
     balance roundrobin \\
     http-response set-header X-Frame-Options SAMEORIGIN \\
     http-response set-header X-XSS-Protection 1;mode=block \\
-    http-response set-header X-Content-Type-Options nosniff"
+    http-response set-header X-Content-Type-Options nosniff \\
+    #filter compression \\
+    #compression direction both \\
+    #compression offload \\
+    #compression algo-req gzip \\
+    #compression type-req application/json \\
+    #compression algo-res gzip \\
+    #compression type-res text/css text/html text/javascript text/plain"
 
     for ip_port in "${ip_port_pairs[@]}"; do
         backend_config+=" \\
@@ -138,6 +143,10 @@ haproxy -f /usr/local/etc/haproxy/haproxy.cfg -D -p /var/run/haproxy.pid -sf $(c
 # Add ocsp cronjob
 echo "- - Add ocsp cronjob - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 echo "0 3 * * * /usr/local/etc/haproxy/ocsp.sh" | tee /etc/crontab
+
+# Add renew cronjob
+echo "- - Add renew cronjob - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+echo "0 0 * * * /usr/local/etc/haproxy/renew.sh" | tee /etc/crontab
 
 # Run ocsp.sh
 echo "- - Run ocsp.sh  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"

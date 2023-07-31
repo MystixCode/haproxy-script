@@ -1,6 +1,8 @@
 # haproxy-script
 Script to install containerized haproxy with letsencrypt cert
 
+<img src="100.png" width="100%" height="100%">
+
 ## Prerequisites
 - Debian 12 server with sudo, git, docker (https://github.com/MystixCode/server-script)
 - A domain name configured with dns record type A pointing to your WAN IP. For example:
@@ -79,6 +81,9 @@ docker cp haproxy:/usr/local/etc/haproxy/dhparams.pem /home/$USER/git/haproxy-sc
 Copy the certs to local:
 ```bash
 docker cp haproxy:/etc/ssl/private/. /home/$USER/git/haproxy-script/tls
+
+# Then uncomment following line in Dockerfiile. Then it will use those.
+# COPY ./tls/* /etc/ssl/private/
 ```
 
 Access the volumes on the server like this:
