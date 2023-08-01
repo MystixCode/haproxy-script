@@ -5,7 +5,7 @@ haproxy_tls_file=/usr/local/etc/haproxy/haproxy_tls.cfg
 
 # Function to obtain SSL certificate
 get_certificate() {
-    echo "- - Obtain SSL certificate - - - - - - - - - - - - - - - - - - - - - - - -"
+    echo "Obtain SSL certificate"
     local domain="$1"
     local email="$2"
 
@@ -34,24 +34,18 @@ get_certificate() {
         echo "$certbot_output" | awk '/Error/ { if (!seen[$0]++) print }'
     fi
 
-    # copy certificate files to desired location
-
+    # merge+copy certificate files to desired location
     cat "/etc/letsencrypt/live/$domain/fullchain.pem" "/etc/letsencrypt/live/$domain/privkey.pem" > "/etc/ssl/private/${domain//./_}.pem"
 
+    #add to crt-list
     echo "/etc/ssl/private/${domain//./_}.pem $domain" >> /usr/local/etc/haproxy/crt-list.txt
     #echo "etc/ssl/private/${domain//./_}.pem [ocsp-update] $domain" > /usr/local/etc/haproxy/crt-list.txt
-
     #echo "add ssl crt-list /usr/local/etc/haproxy/crt-list.txt /etc/ssl/private/${domain//./_}.pem" | socat stdio unix-connect:/run/haproxy/admin.sock    
-    #echo -e "add ssl crt-list /usr/local/etc/haproxy/crt-list.txt <<\n/etc/ssl/private/${domain//./_}.pem [ocsp-update] $domain\n" | socat stdio unix-connect:/run/haproxy/admin.sock
-    
-    # [[ -e "/etc/letsencrypt/live/$domain/fullchain.pem" ]] && cp "/etc/letsencrypt/live/$domain/fullchain.pem" "/etc/ssl/private/${domain//./_}.crt" && echo "/etc/ssl/private/${domain//./_}.crt"
-    # [[ -e "/etc/letsencrypt/live/$domain/privkey.pem" ]] && cp "/etc/letsencrypt/live/$domain/privkey.pem" "/etc/ssl/private/${domain//./_}.crt.key" && echo "/etc/ssl/private/${domain//./_}.crt.key"
 }
 
 # Function to add lines to $haproxy_tls_file
 add_haproxy_config() {
-    echo "- - Add lines to $haproxy_tls_file  - - - - - - - - - - - - - - - - - - - - - - -"
-
+    echo "Add lines to $haproxy_tls_file"
     local domain="$1"
     shift
     local ip_port_pairs=("$@")
@@ -89,23 +83,19 @@ add_haproxy_config() {
     done
 
     # Add the new backend configuration to the temporary file
-    sed "/#automated-backend-tag/i \\
-$backend_config \\
-" "$tmp_frontend" > "$tmp_backend"
+    sed "/#automated-backend-tag/i $backend_config" "$tmp_frontend" > "$tmp_backend"
 
     # Replace the original haproxy_tls.cfg file with the updated configuration
-    cat "$tmp_backend" > $haproxy_tls_file
+    cat "$tmp_backend" > $haproxy_tls_file && rm "$tmp_frontend" "$tmp_backend"
 
-    # Clean up the temporary files
-    rm "$tmp_frontend" "$tmp_backend"
 }
 
 #start rsyslogd
-echo "- - Start rsyslogd  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+echo "Start rsyslogd"
 rsyslogd
 
 # Start haproxy with http conf
-echo "- - Start haproxy with http conf  - - - - - - - - - - - - - - - - - - - - - - -"
+echo "Start haproxy with http conf"
 haproxy -f $haproxy_init_file -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
 # Process command-line options
@@ -118,7 +108,6 @@ while [[ $# -gt 0 ]]; do
         *)
             domain_entry="$1"
             IFS=',' read -ra domain_info <<< "$domain_entry"
-
             domain="${domain_info[0]}"
             email="${domain_info[1]}"
             ip_port_pairs=("${domain_info[@]:2}")
@@ -140,36 +129,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Generate diffie-helman
-echo "- - Generate diffie-helman  - - - - - - - - - - - - - - - - - - - - - - - - - -"
-dhparams_file="/usr/local/etc/haproxy/dhparams.pem"
-
-# Check if the DH params file already exists
-if [ ! -f "$dhparams_file" ]; then
-    # Generate DH parameters using openssl
-    openssl dhparam -out "$dhparams_file" 4096
-    echo "DH parameters generated and saved to $dhparams_file"
-else
-    echo "DH parameters file $dhparams_file already exists. Skipping generation."
-fi
-
 # Reload haproxy with https conf
-echo "- - Reload haproxy with https conf  - - - - - - - - - - - - - - - - - - - - - -"
+echo "Reload haproxy with https conf"
 haproxy -f $haproxy_tls_file -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
-# Add ocsp cronjob
-echo "- - Add ocsp cronjob - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
-echo "0 3 * * * /usr/local/etc/haproxy/ocsp.sh" | tee /etc/crontab
-
-# Add renew cronjob
-echo "- - Add renew cronjob - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
-echo "0 0 * * * /usr/local/etc/haproxy/renew.sh" | tee /etc/crontab
-
 # Run ocsp.sh
-echo "- - Run ocsp.sh  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+echo "Run ocsp.sh"
 /usr/local/etc/haproxy/ocsp.sh
 
 # Run container in a loop
-echo "- - Run container in a loop  - - - - - - - - - - - - - - - - - - - - - - - - -"
+echo "Run container in a loop"
 #tail -f /dev/null
 tail -f /var/log/haproxy.log

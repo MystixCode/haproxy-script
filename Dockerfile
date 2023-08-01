@@ -22,6 +22,15 @@ RUN sed -i '/^# export LS_OPTIONS/s/^# //' /root/.bashrc \
 COPY --chown=haproxy:haproxy ./conf/* /usr/local/etc/haproxy/
 COPY ./tls/* /etc/ssl/private/
 
+# Generate diffie-helman if not exists
+RUN if [ ! -f /usr/local/etc/haproxy/dhparams.pem ]; then openssl dhparam -out "/usr/local/etc/haproxy/dhparams.pem" 4096; fi
+
+# Add ocsp cronjob
+RUN echo "0 3 * * * /usr/local/etc/haproxy/ocsp.sh" | tee /etc/crontab
+
+# Add renew cronjob
+RUN echo "0 0 * * * /usr/local/etc/haproxy/renew.sh" | tee /etc/crontab
+
 #SHELL ["/bin/bash", "-c"]
 ENTRYPOINT [ "/usr/local/etc/haproxy/start.sh" ]
 CMD [""]

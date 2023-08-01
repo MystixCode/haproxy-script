@@ -25,7 +25,7 @@ if [[ -n $certs ]]; then
 
         # Create/update the ocsp response file and update HAProxy
         ocsp_file="${ssl_dir}/${cert##*/}.ocsp"
-        echo "** ocsp *****************************"
+        #echo "** ocsp *****************************"
         # echo "cert: ${cert}"
         # echo "issuer_uri: ${issuer_uri}"
         # echo "issuer_name: ${issuer_name}"

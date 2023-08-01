@@ -82,7 +82,7 @@ Copy the certs to local:
 ```bash
 docker cp haproxy:/etc/ssl/private/. /home/$USER/git/haproxy-script/tls
 
-# Then uncomment following line in Dockerfiile. Then it will use those.
+# Then uncomment following line in Dockerfile so it will use those.
 # COPY ./tls/* /etc/ssl/private/
 ```
 
