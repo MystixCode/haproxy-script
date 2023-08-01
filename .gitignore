@@ -1,3 +1,4 @@
 dhparams.pem
 tls/
+crt-list.txt
 COMMAND.md

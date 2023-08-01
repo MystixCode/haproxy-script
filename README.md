@@ -106,3 +106,18 @@ Check the ocsp response like this:
 ```bash
 echo quit | openssl s_client -connect <your.domain>:443 -status
 ```
+
+Show haproxy info:
+```bash
+echo "show info" | socat stdio /run/haproxy/admin.sock
+```
+
+Show haproxy cache:
+```bash
+echo "show cache" | socat stdio /run/haproxy/admin.sock
+```
+
+Reload: #TODO: why this not working?
+```bash
+echo "reload" | socat stdio /run/haproxy/admin.sock
+```

@@ -5,7 +5,7 @@ shopt -s nullglob  # Enable nullglob to prevent executing the loop if no files a
 # Certificates path and names
 ssl_dir="/etc/ssl/private"
 dir="/usr/local/etc/haproxy/ocsp"
-certs="${ssl_dir}/*.crt"
+certs="${ssl_dir}/*.pem"
 
 # Check if any certificate files are found before proceeding with the loop
 if [[ -n $certs ]]; then
@@ -36,13 +36,13 @@ if [[ -n $certs ]]; then
         openssl ocsp -noverify -no_nonce -issuer $issuer_pem -cert $cert -url $ocsp_url -header Host=$ocsp_host -respout $ocsp_file
         
         # Reload haproxy
-        haproxy -f /usr/local/etc/haproxy/haproxy.cfg -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
+        haproxy -f /usr/local/etc/haproxy/haproxy_tls.cfg -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
         # Update the OCSP response for HAProxy
         echo -e "set ssl ocsp-response <<\n$(base64 $ocsp_file)\n" | socat stdio /run/haproxy/admin.sock
 
         # Reload haproxy again
-        haproxy -f /usr/local/etc/haproxy/haproxy.cfg -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
+        haproxy -f /usr/local/etc/haproxy/haproxy_tls.cfg -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
     done
 else
