@@ -158,19 +158,18 @@ echo "- - Reload haproxy with https conf  - - - - - - - - - - - - - - - - - - - 
 haproxy -f $haproxy_tls_file -D -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
 # Add ocsp cronjob
- echo "- - Add ocsp cronjob - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
- echo "0 3 * * * /usr/local/etc/haproxy/ocsp.sh" | tee /etc/crontab
+echo "- - Add ocsp cronjob - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+echo "0 3 * * * /usr/local/etc/haproxy/ocsp.sh" | tee /etc/crontab
 
 # Add renew cronjob
 echo "- - Add renew cronjob - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 echo "0 0 * * * /usr/local/etc/haproxy/renew.sh" | tee /etc/crontab
 
 # Run ocsp.sh
- echo "- - Run ocsp.sh  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
- /usr/local/etc/haproxy/ocsp.sh
+echo "- - Run ocsp.sh  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+/usr/local/etc/haproxy/ocsp.sh
 
 # Run container in a loop
 echo "- - Run container in a loop  - - - - - - - - - - - - - - - - - - - - - - - - -"
 #tail -f /dev/null
 tail -f /var/log/haproxy.log
-
