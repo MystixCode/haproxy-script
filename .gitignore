@@ -2,3 +2,5 @@ dhparams.pem
 tls/
 crt-list.txt
 COMMAND.md
+conf/geo/ipv4/
+conf/geo/ipv6/

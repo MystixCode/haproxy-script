@@ -69,6 +69,7 @@ add_haproxy_config() {
     http-response set-header X-Frame-Options SAMEORIGIN \\
     http-response set-header X-XSS-Protection 1;mode=block \\
     http-response set-header X-Content-Type-Options nosniff \\
+    timeout queue 10s \\
     #filter compression \\
     #compression direction both \\
     #compression offload \\
@@ -79,7 +80,7 @@ add_haproxy_config() {
 
     for ip_port in "${ip_port_pairs[@]}"; do
         backend_config+=" \\
-    server $ip_port $ip_port check maxconn 200"
+    server $ip_port $ip_port check maxconn 100"
     done
 
     # Add the new backend configuration to the temporary file
