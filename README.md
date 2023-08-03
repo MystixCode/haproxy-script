@@ -1,6 +1,17 @@
 # haproxy-script
 Script to install containerized haproxy with letsencrypt cert
 
+- TLSv1.3 only
+- ocsp
+- hsts
+- caa policy
+- ip blocking
+- geo blocking
+- rate limiting
+- cache
+- letsencrypt
+
+https://www.ssllabs.com/ssltest/
 <img src="100.png" width="100%" height="100%">
 
 ## Prerequisites
