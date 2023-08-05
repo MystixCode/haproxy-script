@@ -1,6 +1,6 @@
-dhparams.pem
-tls/
-crt-list.txt
+*.pem
+*.crt
+*.ocsp
+crt-list
 COMMAND.md
-conf/geo/ipv4/
-conf/geo/ipv6/
+usr/local/etc/haproxy/blocking/geo/

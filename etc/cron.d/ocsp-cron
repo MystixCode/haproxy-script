@@ -1,0 +1,4 @@
+# Run ocsp cron job at 03:00.
+# https://crontab.guru/#0_3_*_*_*
+
+0 3 * * * /usr/local/etc/haproxy/ocsp.sh

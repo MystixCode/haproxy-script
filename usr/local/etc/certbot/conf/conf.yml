@@ -1,0 +1,6 @@
+prod: false
+email: info@example.dev
+domains: [
+  example.dev,
+  sub1.example.dev
+]
