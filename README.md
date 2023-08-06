@@ -12,7 +12,7 @@ Script to install containerized haproxy with letsencrypt cert
 - letsencrypt
 
 https://www.ssllabs.com/ssltest/
-<img src="100.png" width="100%" height="100%">
+<img src="ssllabs.png" width="100%" height="100%">
 
 ## Depenencies
 - Debian 12
