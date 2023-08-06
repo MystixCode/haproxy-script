@@ -22,18 +22,28 @@ if [[ -n $certs ]]; then
         ocsp_host=$(echo $ocsp_url | cut -d/ -f3)
         # Create the ocsp file
         ocsp_file="${ssl_dir}/${cert##*/}.ocsp"
-        # echo "cert: ${cert}"
+        echo "cert: ${cert}"
         # echo "issuer_uri: ${issuer_uri}"
         # echo "issuer_name: ${issuer_name}"
         # echo "issuer_pem: ${issuer_pem}"
         # echo "ocsp_url: ${ocsp_url}"
-        # echo "ocsp_host: ${ocsp_host}"
-        # echo "ocsp_file: ${ocsp_file}"
+        echo "ocsp_host: ${ocsp_host}"
+        echo "ocsp_file: ${ocsp_file}"
         # Update ocsp file with response
-        openssl ocsp -noverify -no_nonce -issuer $issuer_pem -cert $cert -url $ocsp_url -header Host=$ocsp_host -respout $ocsp_file
-        # Update the OCSP response for HAProxy
-        echo -e "set ssl ocsp-response <<\n$(base64 $ocsp_file)\n" | socat stdio unix-connect:/usr/local/run/haproxy/admin.sock,retry=3
-        exit 0
+        openssl ocsp -noverify \
+        -no_nonce \
+        -issuer $issuer_pem \
+        -cert $cert \
+        -url $ocsp_url \
+        -host $ocsp_host \
+        -respout $ocsp_file
+        # Graceful reload haproxy so it knows about updated $ocsp_file
+        killall -SIGUSR2 haproxy
+        # haproxy -D -f /usr/local/etc/haproxy/haproxy.cfg
+        # echo -e "set ssl ocsp-response <<\n$(base64 $ocsp_file)\n" | socat stdio unix-connect:/usr/local/run/haproxy/admin.sock,retry=3
+        # killall -15 haproxy
+        # haproxy -D -f /usr/local/etc/haproxy/haproxy.cfg
+        # echo "update ssl ocsp-response $cert" | socat stdio unix-connect:/usr/local/run/haproxy/admin.sock,retry=3
     done
 else
     echo "No certificate files found in $ssl_dir."

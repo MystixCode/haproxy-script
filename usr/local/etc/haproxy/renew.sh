@@ -17,8 +17,11 @@ copy_cert_files() {
 }
 
 echo "- - Renew certs - - - - - - - - - - - - - - - - - -"
-#certbot renew
-certbot renew --force-renew
+certbot renew \
+--config-dir /usr/local/etc/certbot/conf \
+--work-dir /usr/local/etc/certbot/work \
+--logs-dir /usr/local/etc/certbot/log
+#certbot renew --force-renew
 
 echo "- - Copy certs - - - - - - - - - - - - - - - - - -"
 copy_cert_files

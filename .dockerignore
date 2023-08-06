@@ -4,3 +4,5 @@ Dockerfile
 ssllabs.png
 .gitignore
 .dockerignore
+usr/local/etc/certbot/conf/example-conf.yml
+usr/local/etc/certbot/conf/example-conf.yml

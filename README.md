@@ -45,10 +45,7 @@ https://www.ssllabs.com/ssltest/
 ## Build and run
 
 ```bash
-if [ -n "$(docker ps -q -f name=haproxy)" ]; then docker kill haproxy; fi && \
-if [ -n "$(docker ps -a -q -f name=haproxy)" ]; then docker rm haproxy; fi && \
-if [ -n "$(docker images -q haproxy-img)" ]; then docker rmi haproxy-img; fi && \
-docker build --progress=plain -t haproxy-img -f Dockerfile . && \
+docker build -t haproxy-img -f Dockerfile . && \
 docker run --rm --name haproxy \
 -it \
 -p 7777:7777 \

@@ -28,12 +28,6 @@ gnupg \
 certbot \
 wget \
 socat \
-iproute2 \
-traceroute \
-net-tools \
-htop \
-procps \
-git \
 cron; \
 # Add haproxy apt repo
 curl https://haproxy.debian.net/bernat.debian.org.gpg | gpg --dearmor \

@@ -68,7 +68,7 @@ while read -r domain; do
     fi
     #add to crt-list
     echo "$haproxy_cert_dir/${domain//./_}.pem $domain" >> /usr/local/etc/haproxy/crt-list
-    #echo "etc/ssl/private/${domain//./_}.pem [ocsp-update] $domain" > /usr/local/etc/haproxy/crt-list
+    #echo "etc/ssl/private/${domain//./_}.pem [ocsp-update on] $domain" > /usr/local/etc/haproxy/crt-list
     #echo "add ssl crt-list /usr/local/etc/haproxy/crt-list /etc/ssl/private/${domain//./_}.pem" | socat stdio unix-connect:/run/haproxy/admin.sock
 done
 
