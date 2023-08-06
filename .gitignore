@@ -1,6 +1,7 @@
 *.pem
 *.crt
 *.ocsp
-crt-list
-COMMAND.md
+usr/local/etc/haproxy/crt-list
+usr/local/etc/certbot/conf/conf.yml
+usr/local/etc/haproxy/haproxy.cfg
 usr/local/etc/haproxy/blocking/geo/
