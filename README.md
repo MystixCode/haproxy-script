@@ -37,8 +37,10 @@ https://www.ssllabs.com/ssltest/
 - On your router: port forwarding for http port 80 and https port 443 and letsencrypt port 8443 to your debian server.
 
 ## Configure
-- Edit `usr/local/etc/certbot/conf/conf.yml`
-- Edit the example acl and backend in `usr/local/etc/haproxy/haproxy.cfg`
+- `cp usr/local/etc/certbot/conf/example-conf.yml usr/local/etc/certbot/conf/conf.yml`
+- Edit usr/local/etc/certbot/conf/conf.yml
+- `cp usr/local/etc/haproxy/example-haproxy.cfg usr/local/etc/haproxy/haproxy.cfg`
+- Edit usr/local/etc/haproxy/haproxy.cfg
 
 ## Build and run
 
