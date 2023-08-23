@@ -1,0 +1,21 @@
+name: Build haproxy image
+
+#on:
+#  push:
+#    branches: [ "main" ]
+#  pull_request:
+#    branches: [ "main" ]
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: debian:bookworm-slim
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build -t haproxy-img -f Dockerfile .
